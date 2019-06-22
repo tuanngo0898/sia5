@@ -1,0 +1,27 @@
+<launch>
+
+  <param name="move_group/trajectory_execution/allowed_execution_duration_scaling" value="4.0" />
+  <param name="move_group/trajectory_execution/execution_duration_monitoring" value="false" />
+
+  <include file="$(find motoman_sia5_moveit_config)/launch/moveit_planning_execution.launch">
+    <arg name="load_robot_description" value="true"/>
+    <arg name="urdf_model" value="$(find motoman_description)/robots/sia5/sia5_with_dhand.urdf.xacro"/>
+    <arg name="srdf_model" value="$(find motoman_moveit)/config/sia5_with_dhand/sia5.srdf"/>
+    <arg name="joint_limits_config" value="$(find motoman_moveit)/config/sia5_with_dhand/joint_limits.yaml"/>
+    <arg name="kinematics_config" value="$(find motoman_moveit)/config/sia5_with_dhand/kinematics.yaml"/>
+    <arg name="controllers_config" value="$(find motoman_moveit)/config/sia5_with_dhand/fake_controllers.yaml"/>
+    <arg name="rviz_config" value="$(find motoman_moveit)/launch/rviz/moveit_sia5.rviz"/>
+
+    <arg name="use_depth_sensor" value="true"/>
+    <arg name="sensor_config" value="$(find motoman_moveit)/config/sia5_with_dhand_and_multi_kinect/kinect2.yaml"/>
+    <arg name="octomap_frame_name" value="octomap_link"/>
+    <arg name="octomap_resolution_value" value="0.035"/>
+    <arg name="sensor_max_range" value="2.0"/>
+
+  </include>
+
+  <arg name="node_start_delay" default="5.0" /> 
+
+  <node pkg="motoman_moveit" type="rviz_belt_conveyor_spawner" name="rviz_belt_conveyor_spawner" output="screen" respawn="false" respawn_delay="0" 
+  launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+</launch>

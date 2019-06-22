@@ -1,0 +1,67 @@
+<launch>
+
+  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="model" default="$(find motoman_description)/robots/sia5/sia5_with_dhand_and_kinect.urdf.xacro"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <arg name="sia5_x" default="0"/>
+  <arg name="sia5_y" default="0"/>
+  <arg name="sia5_z" default="0"/>
+
+  <arg name="sia5_roll" default="0"/>
+  <arg name="sia5_pitch" default="0"/>
+  <arg name="sia5_yaw" default="0"/>
+
+  <!-- <param name="red_box_path" type="str" value="$(find motoman_gazebo)/models/urdf/red_box.urdf"/> -->
+  <param name="cylinder_path" type="str" value="$(find motoman_gazebo)/models/urdf/cylinder.urdf"/>
+
+  <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+	<arg name="world_name" value="$(find motoman_gazebo)/worlds/sia5/sia5_empty.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+  <!-- Load the URDF into the ROS Parameter Server -->
+  <param name="robot_description"
+		command="$(find xacro)/xacro --inorder '$(arg model)' x:=$(arg sia5_x) y:=$(arg sia5_y) z:=$(arg sia5_z)
+    roll:=$(arg sia5_roll) pitch:=$(arg sia5_pitch) yaw:=$(arg sia5_yaw)" />
+  
+  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+  		args="-urdf -model sia5 -param robot_description"/>
+
+  <!-- ros_control motoman launch file -->
+  <include file="$(find motoman_control)/launch/sia5/sia5_sim_control.launch"/>
+  
+  <!-- ros_control dhand launch file -->
+  <rosparam file="$(find dhand_control)/config/dhand_joint_position_control.yaml" command="load"/>
+  <!-- load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager"
+		type="spawner" output="screen"
+		args="dhand/joint_state_controller
+			  dhand/joint_finger_base_right_position_controller
+			  dhand/joint_finger_base_left_position_controller
+			  dhand/joint_finger_middle_middle_position_controller
+			  dhand/joint_finger_middle_right_position_controller
+			  dhand/joint_finger_middle_left_position_controller
+			  dhand/joint_finger_top_middle_position_controller
+			  dhand/joint_finger_top_right_position_controller
+			  dhand/joint_finger_top_left_position_controller"/>
+
+  <!-- spawn the conveyor_belt in gazebo -->
+  <node name="spawn_conveyor_belt" pkg="gazebo_ros" type="spawn_model" args="-file $(find motoman_gazebo)/models/urdf/conveyor_belt.urdf -urdf -model conveyor_belt" />
+  <!-- spawn the conveyor_belt in gazebo -->
+  <node name="bin" pkg="gazebo_ros" type="spawn_model" args="-file $(find motoman_gazebo)/models/urdf/bin.urdf -urdf -model bin -y 0.5 -x -0.5 -z 0.05" />
+  <!-- the red blocks spawner node -->
+  <!-- <node name="blocks_spawner" pkg="motoman_gazebo" type="blocks_spawner" output="screen" /> -->
+  <node name="cylinders_spawner" pkg="motoman_gazebo" type="cylinders_spawner" output="screen" />
+  
+</launch>

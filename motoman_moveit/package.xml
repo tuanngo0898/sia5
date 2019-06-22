@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>motoman_moveit</name>
+  <version>1.1.0</version>
+  <description>The motoman_moveit package</description>
+
+  <maintainer email="groadpg@gmail.com">RyodoTanaka</maintainer>
+  <maintainer email="ry0@todo.todo">ry0</maintainer>
+  <maintainer email="p595201m@mail.kyutech.jp">MoriKen</maintainer>
+
+  <license>BSD</license>
+  <url type="repository">http://github.com/Nishida-Lab/motoman_project</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>boost</depend>
+  <depend>cmake_modules</depend>
+  <depend>eigen</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_msgs</depend>
+  <depend>moveit_commander</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_ros_perception</depend>
+  <depend>rospy</depend>
+  <depend>roscpp</depend>
+  <depend>pluginlib</depend>
+  
+  <build_depend>moveit_visual_tools</build_depend>
+  <build_depend>rviz_visual_tools</build_depend>
+
+  <exec_depend>moveit_visual_tools</exec_depend>
+  <exec_depend>rviz_visual_tools</exec_depend>
+
+  <build_depend>interactive_markers</build_depend>
+  <exec_depend>interactive_markers</exec_depend>
+
+  <exec_depend>motoman_description</exec_depend>
+  <exec_depend>motoman_sia5_moveit_config</exec_depend>
+
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  
+  <test_depend>roslaunch</test_depend>
+
+</package>
