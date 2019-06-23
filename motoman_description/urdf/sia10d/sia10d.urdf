@@ -180,6 +180,6 @@
     <origin rpy="0 0 0" xyz="0 0 0.155"/>
     <axis xyz="0 0 -1"/>
     <limit effort="100" lower="-3.1416" upper="3.1416" velocity="6.97"/>
-  </joint>
+  </joint>    
 </robot>
 

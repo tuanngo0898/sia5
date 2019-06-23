@@ -91,10 +91,10 @@
       cylinder_xmlStr = cylinder_strStream.str();
      // ROS_INFO_STREAM("urdf: \n" <<red_xmlStr);
       // prepare the pawn model service message
-      spawn_model_req.initial_pose.position.x = 0;
+      spawn_model_req.initial_pose.position.x = 0.5;
     //   spawn_model_req.initial_pose.position.y = -1.3;
       spawn_model_req.initial_pose.position.y = -0.3;
-      spawn_model_req.initial_pose.position.z = 0.25;
+      spawn_model_req.initial_pose.position.z = 0.201;
       spawn_model_req.initial_pose.orientation.x=0.0;
       spawn_model_req.initial_pose.orientation.y=0.0;
       spawn_model_req.initial_pose.orientation.z=0.0;
@@ -117,7 +117,7 @@
           std::string index = intToString(i);
           std::string model_name;
 
-          spawn_model_req.initial_pose.position.x = 0.6 + ((float)rand()/(float)(RAND_MAX)-0.5) * 0.4;  // random between -0.4 to 0.4
+        //   spawn_model_req.initial_pose.position.x = 0.6 + ((float)rand()/(float)(RAND_MAX)-0.5) * 0.4;  // random between -0.4 to 0.4
           ROS_INFO_STREAM("x position of new cylinder: "
           << spawn_model_req.initial_pose.position.x);
 

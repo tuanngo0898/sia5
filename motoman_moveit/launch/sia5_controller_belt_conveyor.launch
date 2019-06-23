@@ -6,22 +6,36 @@
   <include file="$(find motoman_sia5_moveit_config)/launch/moveit_planning_execution.launch">
     <arg name="load_robot_description" value="true"/>
     <arg name="urdf_model" value="$(find motoman_description)/robots/sia5/sia5_with_dhand.urdf.xacro"/>
-    <arg name="srdf_model" value="$(find motoman_moveit)/config/sia5_with_dhand/sia5.srdf"/>
-    <arg name="joint_limits_config" value="$(find motoman_moveit)/config/sia5_with_dhand/joint_limits.yaml"/>
-    <arg name="kinematics_config" value="$(find motoman_moveit)/config/sia5_with_dhand/kinematics.yaml"/>
-    <arg name="controllers_config" value="$(find motoman_moveit)/config/sia5_with_dhand/fake_controllers.yaml"/>
+    <arg name="srdf_model" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/sia5.srdf"/>
+    <arg name="joint_limits_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/joint_limits.yaml"/>
+    <arg name="kinematics_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/kinematics.yaml"/>
+    <arg name="controllers_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/fake_controllers.yaml"/>
     <arg name="rviz_config" value="$(find motoman_moveit)/launch/rviz/moveit_sia5.rviz"/>
 
     <arg name="use_depth_sensor" value="true"/>
-    <arg name="sensor_config" value="$(find motoman_moveit)/config/sia5_with_dhand_and_multi_kinect/kinect2.yaml"/>
+    <arg name="sensor_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/kinect2.yaml"/>
     <arg name="octomap_frame_name" value="octomap_link"/>
     <arg name="octomap_resolution_value" value="0.035"/>
     <arg name="sensor_max_range" value="2.0"/>
-
+    
+    <!-- <arg name="load_robot_description" value="true"/>
+    <arg name="urdf_model" value="$(find motoman_description)/robots/sia5/sia5_with_jamming_and_kinectv2.urdf.xacro"/>
+    <arg name="srdf_model" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/sia5.srdf"/>
+    <arg name="joint_limits_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/joint_limits.yaml"/>
+    <arg name="kinematics_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/kinematics.yaml"/>
+    <arg name="controllers_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/controllers.yaml"/>
+    <arg name="use_depth_sensor" value="true"/>
+    <arg name="sensor_config" value="$(find motoman_moveit)/config/sia5_with_jamming_and_kinectv2/kinect2.yaml"/>
+    <arg name="octomap_frame_name" value="kinect2_link"/>
+    <arg name="octomap_resolution_value" value="0.025"/>
+    <arg name="sensor_max_range" value="4.5"/>
+    <arg name="rviz_config" value="$(find motoman_moveit)/launch/rviz/moveit_sia5.rviz"/> -->
   </include>
 
-  <arg name="node_start_delay" default="5.0" /> 
+  <arg name="node_start_delay" default="8.0" /> 
 
   <node pkg="motoman_moveit" type="rviz_belt_conveyor_spawner" name="rviz_belt_conveyor_spawner" output="screen" respawn="false" respawn_delay="0" 
   launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+
+  <node name="moveit_controller" pkg="moveit_controller" type="moveit_controller" respawn="false" output="screen"/>
 </launch>

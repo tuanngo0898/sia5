@@ -1,38 +1,4 @@
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
- *  Copyright (c) 2013, SRI International
- *  All rights reserved.
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of SRI International nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- *  POSSIBILITY OF SUCH DAMAGE.
- *********************************************************************/
-
-/* Author: Sachin Chitta, Dave Coleman, Mike Lautman */
+#include "ros/ros.h"
 
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
@@ -45,94 +11,134 @@
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+static const std::string PLANNING_GROUP = "arm";
+moveit::planning_interface::MoveGroupInterface *move_group;
+const robot_state::JointModelGroup* joint_model_group;
+moveit_msgs::DisplayTrajectory display_trajectory;
+namespace rvt = rviz_visual_tools;
+moveit_visual_tools::MoveItVisualTools *visual_tools;
+moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+std::vector<moveit_msgs::CollisionObject> collision_objects;
+
+void palm_pose_callback(const geometry_msgs::Pose& target_pose)
+{
+
+  ROS_INFO("palm_pose_callback");
+  
+  visual_tools->deleteAllMarkers();
+
+  collision_objects[1].id = "object";
+  collision_objects[1].header.frame_id = "world";
+
+  /* Define the primitive and its dimensions. */
+  collision_objects[1].primitives.resize(1);
+  collision_objects[1].primitives[0].type = collision_objects[1].primitives[0].BOX;
+  collision_objects[1].primitives[0].dimensions.resize(3);
+  collision_objects[1].primitives[0].dimensions[0] = 0.4;
+  collision_objects[1].primitives[0].dimensions[1] = 0.2;
+  collision_objects[1].primitives[0].dimensions[2] = 0.4;
+
+  /* Define the pose of the table. */
+  collision_objects[1].primitive_poses.resize(1);
+  collision_objects[1].primitive_poses[0].position.x = 0;
+  collision_objects[1].primitive_poses[0].position.y = 0.5;
+  collision_objects[1].primitive_poses[0].position.z = 0.2;
+
+  std::vector<moveit_msgs::Grasp> grasps;
+  grasps.resize(1);
+
+  grasps[0].grasp_pose.header.frame_id = "world";
+  tf2::Quaternion orientation;
+  orientation.setRPY(-M_PI / 2, -M_PI / 4, -M_PI / 2);
+  grasps[0].grasp_pose.pose.orientation = tf2::toMsg(orientation);
+  grasps[0].grasp_pose.pose.position.x = 0.415;
+  grasps[0].grasp_pose.pose.position.y = 0;
+  grasps[0].grasp_pose.pose.position.z = 0.5;
+
+  /* Defined with respect to frame_id */
+  grasps[0].pre_grasp_approach.direction.header.frame_id = "world";
+  /* Direction is set as positive x axis */
+  grasps[0].pre_grasp_approach.direction.vector.x = 1.0;
+  grasps[0].pre_grasp_approach.min_distance = 0.095;
+  grasps[0].pre_grasp_approach.desired_distance = 0.115;
+
+  /* Defined with respect to frame_id */
+  grasps[0].post_grasp_retreat.direction.header.frame_id = "panda_link0";
+  /* Direction is set as positive z axis */
+  grasps[0].post_grasp_retreat.direction.vector.z = 1.0;
+  grasps[0].post_grasp_retreat.min_distance = 0.1;
+  grasps[0].post_grasp_retreat.desired_distance = 0.25;
+
+  move_group->pick("object", grasps);
+
+  move_group->setPoseTarget(target_pose);
+  ROS_INFO("Start plan");
+  bool success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  ROS_INFO("Planned");
+  if(success){
+    visual_tools->publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+    visual_tools->trigger();
+
+    ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
+
+    // move_group->move();
+    move_group->execute(my_plan);
+    ROS_INFO_NAMED("Move it controller", "Completed!");
+  }
+  else{
+    ROS_INFO_NAMED("Move it controller", "Failed to plan!");
+  }
+
+}
+
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "move_group_interface_tutorial");
+  ros::init(argc, argv, "moveit_controller");
   ros::NodeHandle node_handle;
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(2);
   spinner.start();
 
-  static const std::string PLANNING_GROUP = "arm";
+  ros::Subscriber sub = node_handle.subscribe("palm_pose", 10, palm_pose_callback);
 
-  moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
+  move_group = new moveit::planning_interface::MoveGroupInterface(PLANNING_GROUP);
+  visual_tools = new moveit_visual_tools::MoveItVisualTools("world");
+  
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
   ros::Publisher display_publisher = node_handle.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
-  moveit_msgs::DisplayTrajectory display_trajectory;
-  const robot_state::JointModelGroup* joint_model_group = move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
+  joint_model_group = move_group->getCurrentState()->getJointModelGroup(PLANNING_GROUP);
   
-  namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools("world");
-  visual_tools.deleteAllMarkers();
-  visual_tools.loadRemoteControl();
+  visual_tools->deleteAllMarkers();
+  visual_tools->loadRemoteControl();
 
-  ROS_INFO("Reference frame: %s", move_group.getPlanningFrame().c_str());
-  ROS_INFO("End Effector Link: %s", move_group.getEndEffectorLink().c_str());
+  ROS_INFO("Reference frame: %s", move_group->getPlanningFrame().c_str());
+  move_group->setEndEffectorLink("dhand_palm_link");
+  ROS_INFO("End Effector Link: %s", move_group->getEndEffectorLink().c_str());
 
   // We can get a list of all the groups in the robot:
   ROS_INFO_NAMED("Move it controller", "Available Planning Groups:");
-  std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(), std::ostream_iterator<std::string>(std::cout, ", "));
+  std::copy(move_group->getJointModelGroupNames().begin(), move_group->getJointModelGroupNames().end(), std::ostream_iterator<std::string>(std::cout, ", "));
   ROS_INFO_NAMED("Move it controller", "\r\n");
 
-  geometry_msgs::Pose target_pose1;
-  target_pose1.orientation.w = 1.0;
-  target_pose1.position.x = 0.28;
-  target_pose1.position.y = -0.2;
-  target_pose1.position.z = 0.5;
-  move_group.setPoseTarget(target_pose1);
 
-  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-  
-  bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+  collision_objects.resize(2);
 
-  ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
+  collision_objects[0].id = "bin";
+  collision_objects[0].header.frame_id = "world";
 
-  // move_group.move();
-  move_group.execute(my_plan);
-  ROS_INFO_NAMED("Move it controller", "Completed!");
+  collision_objects[0].primitives.resize(1);
+  collision_objects[0].primitives[0].type = collision_objects[0].primitives[0].BOX;
+  collision_objects[0].primitives[0].dimensions.resize(3);
+  collision_objects[0].primitives[0].dimensions[0] = 0.2;
+  collision_objects[0].primitives[0].dimensions[1] = 0.4;
+  collision_objects[0].primitives[0].dimensions[2] = 0.4;
 
-  // display_trajectory.trajectory_start = my_plan.start_state_;
-  // display_trajectory.trajectory.push_back(my_plan.trajectory_);
-  // display_publisher.publish(display_trajectory);
+  collision_objects[0].primitive_poses.resize(1);
+  collision_objects[0].primitive_poses[0].position.x = 0.5;
+  collision_objects[0].primitive_poses[0].position.y = 0;
+  collision_objects[0].primitive_poses[0].position.z = 0.2;
 
-  moveit_msgs::CollisionObject collision_object;
-  collision_object.header.frame_id = move_group.getPlanningFrame();
-
-  // The id of the object is used to identify it.
-  collision_object.id = "box1";
-
-  // Define a box to add to the world.
-  shape_msgs::SolidPrimitive primitive;
-  primitive.type = primitive.BOX;
-  primitive.dimensions.resize(3);
-  primitive.dimensions[0] = 1.0;
-  primitive.dimensions[1] = 3.0;
-  primitive.dimensions[2] = 0.1;
-
-  // Define a pose for the box (specified relative to frame_id)
-  geometry_msgs::Pose box_pose;
-  box_pose.orientation.w = 0;
-  box_pose.position.x = 0.6;
-  box_pose.position.y = 0.0;
-  box_pose.position.z = 0.1;
-
-  collision_object.primitives.push_back(primitive);
-  collision_object.primitive_poses.push_back(box_pose);
-  collision_object.operation = collision_object.ADD;
-
-  std::vector<moveit_msgs::CollisionObject> collision_objects;
-  collision_objects.push_back(collision_object);
-
-  // Now, let's add the collision object into the world
-  ROS_INFO_NAMED("tutorial", "Add an object into the world");
-  planning_scene_interface.addCollisionObjects(collision_objects);
-  visual_tools.trigger();
-
-  // move_group.clearPathConstraints();
-
-  while (ros::ok())
-  {
-    ros::spinOnce();
-  }
+  ros::waitForShutdown();
   return 0;
 }
