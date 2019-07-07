@@ -462,22 +462,23 @@ bool CheckGrip(const std::vector<GzVector3> &forces,
       float l1 = gazebo::GetLength(v1);
       float l2 = gazebo::GetLength(v2);
       if ((l1 < 1e-04) || (l2 < 1e-04)) continue;
-      /*GzVector3 _v1=v1;
+      GzVector3 _v1=v1;
       GzVector3 _v2=v2;
       _v1/=l1;
       _v2/=l2;
-      float angle=acos(_v1.Dot(_v2));*/
+      // float angle=acos(_v1.Dot(_v2));
       float angle = AngularDistance(v1, v2);
-      // gzmsg<<"Angular distance between v1.len="<<v1.GetLength()<<" and v2.len="<<v2.GetLength()<<": "<<angle*180/M_PI<<std::endl;
+      gzmsg<<"Angular distance between v1.len="<<v1.Length()<<" and v2.len="<<v2.Length()<<": "<<angle*180/M_PI<<std::endl;
+      gzmsg<<"while min angle diff is " << minAngleDiff;
       if (angle > minAngleDiff)
       {
         float ratio;
         if (l1 > l2) ratio = l2 / l1;
         else ratio = l1 / l2;
-        // gzmsg<<"Got angle "<<angle<<", ratio "<<ratio<<std::endl;
+        gzmsg<<"Got angle "<<angle<<", ratio "<<ratio<<std::endl;
         if (ratio >= lengthRatio)
         {
-          // gzmsg<<"CheckGrip() is true"<<std::endl;
+          gzmsg<<"CheckGrip() is true"<<std::endl;
           return true;
         }
       }
@@ -510,7 +511,7 @@ void GazeboGraspFix::OnUpdate()
   for (objIt = contPoints.begin(); objIt != contPoints.end(); ++objIt)
   {
     std::string objName = objIt->first;
-    //gzmsg<<"Examining object collisions with "<<objName<<std::endl;
+    gzmsg<<"Examining object collisions with "<<objName<<std::endl;
 
     // create new entry in accumulated results map and get reference to fill in:
     ObjectContactInfo &objContInfo = objectContactInfo[objName];
@@ -522,7 +523,7 @@ void GazeboGraspFix::OnUpdate()
       std::string linkName = lIt->first;
       CollidingPoint &collP = lIt->second;
       GzVector3 avgForce = collP.force / collP.sum;
-      // gzmsg << "Found collision with "<<linkName<<": "<<avgForce.x<<", "<<avgForce.y<<", "<<avgForce.z<<" (avg over "<<collP.sum<<")"<<std::endl;
+      gzmsg << "Found collision with "<<linkName<<": "<<avgForce[0]<<", "<<avgForce[1]<<", "<<avgForce[2]<<" (avg over "<<collP.sum<<")"<<std::endl;
       objContInfo.appliedForces.push_back(avgForce);
       // insert the gripper (if it doesn't exist yet) and increase contact counter
       int &gContactCnt = objContInfo.grippersInvolved[collP.gripperName];
@@ -573,7 +574,7 @@ void GazeboGraspFix::OnUpdate()
     // add to "gripped objects"
     grippedObjects.insert(objName);
 
-    //gzmsg<<"Grasp Held: "<<objName<<" grip count: "<<this->gripCounts[objName]<<std::endl;
+    gzmsg<<"Grasp Held: "<<objName<<" grip count: "<<this->gripCounts[objName]<<std::endl;
 
     int &counts = this->gripCounts[objName];
     if (counts < this->maxGripCount) ++counts;
@@ -582,7 +583,7 @@ void GazeboGraspFix::OnUpdate()
     if (counts <= this->gripCountThreshold)
       continue;
 
-    //gzmsg<<"GRIPPING "<<objName<<", grip count "<<counts<<" (threshold "<<this->gripCountThreshold<<")"<<std::endl;
+    gzmsg<<"GRIPPING "<<objName<<", grip count "<<counts<<" (threshold "<<this->gripCountThreshold<<")"<<std::endl;
 
     // find out if any of the grippers involved in the grasp is already grasping the object.
     // If there is no such gripper, attach it to the gripper which has most contact points.
@@ -593,7 +594,7 @@ void GazeboGraspFix::OnUpdate()
     {
       // the object is already attached to a gripper, so it does not need to be attached.
       // gzmsg << "GazeboGraspFix has found that object "<<
-      //     gripper.attachedObject()<<" is already attached to gripper "<<gripperName;
+      //     grippers[0].attachedObject()<<" is already attached to gripper "<<grippers[0].getGripperName();
       continue;
     }
 
@@ -638,10 +639,10 @@ void GazeboGraspFix::OnUpdate()
     {
       const std::string &collidingLink = contPointsIt->first;
       const CollidingPoint &collidingPoint = contPointsIt->second;
-      // gzmsg<<"Checking initial contact with "<<collidingLink<<" and "<<graspingGripperName<<std::endl;
+      gzmsg<<"Checking initial contact with "<<collidingLink<<" and "<<graspingGripperName<<std::endl;
       if (graspingGripper.hasCollisionLink(collidingLink))
       {
-        // gzmsg<<"Insert initial contact with "<<collidingLink<<std::endl;
+        gzmsg<<"Insert initial contact with "<<collidingLink<<std::endl;
         attGripConts[collidingLink] = collidingPoint;
       }
     }
@@ -677,7 +678,7 @@ void GazeboGraspFix::OnUpdate()
 
     // the object does not satisfy "gripped" criteria, so potentially has to be released.
 
-    // gzmsg<<"NOT-GRIPPING "<<objName<<", grip count "<<gripCntIt->second<<" (threshold "<<this->gripCountThreshold<<")"<<std::endl;
+    gzmsg<<"NOT-GRIPPING "<<objName<<", grip count "<<gripCntIt->second<<" (threshold "<<this->gripCountThreshold<<")"<<std::endl;
 
     if (gripCntIt->second > 0) --(gripCntIt->second);
 
@@ -691,7 +692,7 @@ void GazeboGraspFix::OnUpdate()
 
     const std::string &graspingGripperName = attIt->second;
 
-    // gzmsg<<"Considering "<<objName<<" for detachment."<<std::endl;
+    gzmsg<<"Considering "<<objName<<" for detachment."<<std::endl;
 
     // Object should potentially be detached now.
     // However, this happens too easily when just considering the count, as the fingers
@@ -758,13 +759,12 @@ void GazeboGraspFix::OnUpdate()
       // This is the new distance from contact to object.
       GzVector3 newObjDist = currContactWorldPose - gazebo::GetPos(currObjWorldPose);
 
-      //gzmsg<<"Obj Trans "<<cpInfo.collLink->GetName()<<": "<<relObjPos.x<<", "<<relObjPos.y<<", "<<relObjPos.z<<std::endl;
-      //gzmsg<<"Cont Trans "<<cpInfo.collLink->GetName()<<": "<<relContactPos.x<<", "<<relContactPos.y<<", "<<relContactPos.z<<std::endl;
+      gzmsg<<"Obj Trans "<<cpInfo.collLink->GetName()<<": "<<relObjPos[0]<<", "<<relObjPos[1]<<", "<<relObjPos[2]<<std::endl;
+      gzmsg<<"Cont Trans "<<cpInfo.collLink->GetName()<<": "<<relContactPos[0]<<", "<<relContactPos[1]<<", "<<relContactPos[2]<<std::endl;
 
       // the difference between these vectors should not be too large...
-      float diff =
-        fabs(gazebo::GetLength(oldObjDist) - gazebo::GetLength(newObjDist));
-      //gzmsg<<"Diff for link "<<cpInfo.collLink->GetName()<<": "<<diff<<std::endl;
+      float diff = fabs(gazebo::GetLength(oldObjDist) - gazebo::GetLength(newObjDist));
+      gzmsg<<"Diff for link "<<cpInfo.collLink->GetName()<<": "<<diff<<std::endl;
 
       if (diff > releaseTolerance)
       {

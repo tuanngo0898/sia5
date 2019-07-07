@@ -51,7 +51,15 @@ std::string intToString (int a) {
 
 void grip_close(void){
   std_msgs::Float64 grip;
-  grip.data = 0.3;
+  grip.data = 0.35;
+  gripper_pub_top_left.publish(grip);
+  gripper_pub_top_right.publish(grip);
+  gripper_pub_top_middle.publish(grip);
+}
+
+void grip_closer(void){
+  std_msgs::Float64 grip;
+  grip.data = 0.4;
   gripper_pub_top_left.publish(grip);
   gripper_pub_top_right.publish(grip);
   gripper_pub_top_middle.publish(grip);
@@ -111,17 +119,16 @@ void palm_pose_callback(const geometry_msgs::Pose& target_pose)
 
   // Define a box to add to the world.
   shape_msgs::SolidPrimitive primitive;
-  primitive.type = primitive.BOX;
-  primitive.dimensions.resize(3);
-  primitive.dimensions[0] = 0.055;
-  primitive.dimensions[1] = 0.055;
-  primitive.dimensions[2] = 0.155;
+  primitive.type = primitive.CYLINDER;
+  primitive.dimensions.resize(2);
+  primitive.dimensions[0] = 0.3;
+  primitive.dimensions[1] = 0.025;
 
   // Define a pose for the box (specified relative to frame_id)
   geometry_msgs::Pose box_pose;
   box_pose.orientation.w = 0;
   box_pose.position.x = target_pose.position.x;
-  box_pose.position.y = target_pose.position.y;
+  box_pose.position.y = target_pose.position.y-0.01;
   box_pose.position.z = target_pose.position.z;
 
   collision_object.primitives.push_back(primitive);
@@ -138,9 +145,9 @@ void palm_pose_callback(const geometry_msgs::Pose& target_pose)
   
   orientation.setRPY(-M_PI / 2, 0, -M_PI / 2);
   dst_pose = target_pose;
-  dst_pose.position.x -= 0.01;
+  // dst_pose.position.x -= 0.01;
   dst_pose.position.y += 0.04;
-  dst_pose.position.z += 0.04;
+  dst_pose.position.z += 0.05;
   ROS_INFO("target posision %f %f %f", dst_pose.position.x, dst_pose.position.y, dst_pose.position.z);
   ROS_INFO("target orientation %f %f %f %f", dst_pose.orientation.x, dst_pose.orientation.y, dst_pose.orientation.z, dst_pose.orientation.w);
   dst_pose.orientation = tf2::toMsg(orientation);
@@ -158,6 +165,11 @@ void palm_pose_callback(const geometry_msgs::Pose& target_pose)
   else{
     ROS_INFO_NAMED("Move it controller", "Failed to plan!");
   }
+
+  grip_close();
+  ros::Duration(1).sleep();
+  grip_closer();
+  ros::Duration(2).sleep();
 
   // std::vector<moveit_msgs::Grasp> grasps;
   // grasps.resize(1);
@@ -243,18 +255,16 @@ void palm_pose_callback(const geometry_msgs::Pose& target_pose)
   // }
 
   
-
-  // orientation.setRPY(-1.651, 0.084, 3.046);
-  // dst_pose.orientation = tf2::toMsg(orientation);
   // dst_pose.orientation.x = 0.021;
   // dst_pose.orientation.y = 0.706;
   // dst_pose.orientation.z = -0.690;
   // dst_pose.orientation.w = -0.158;
-  // dst_pose.position.x = -0.518;
-  // dst_pose.position.y = 0.490;
-  // dst_pose.position.z = 0.330;
-
-  // move_group->setPoseTarget(target_pose);
+  orientation.setRPY(-1.651, 0.084, 3.046);
+  dst_pose.orientation = tf2::toMsg(orientation);
+  dst_pose.position.x = -0.518;
+  dst_pose.position.y = 0.490;
+  dst_pose.position.z = 0.330;
+  move_group->setPoseTarget(dst_pose);
 
   
   // geometry_msgs::Pose target_pose1;
@@ -265,25 +275,22 @@ void palm_pose_callback(const geometry_msgs::Pose& target_pose)
   // target_pose1.position.z = 0.652;
   // move_group->setPoseTarget(target_pose1);
 
-  // ROS_INFO("Start plan");
-  // success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  // // move_group->execute(my_plan);
-  // ROS_INFO("Planned");
-  // if(success){
-  //   visual_tools->publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
-  //   visual_tools->trigger();
+  success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  if(success){
+    visual_tools->publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+    visual_tools->trigger();
 
-  //   ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
+    ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
 
-  //   // move_group->move();
-  //   move_group->execute(my_plan);
-  //   ROS_INFO_NAMED("Move it controller", "Completed!");
-  // }
-  // else{
-  //   ROS_INFO_NAMED("Move it controller", "Failed to plan!");
-  // }
+    // move_group->move();
+    move_group->execute(my_plan);
+    ROS_INFO_NAMED("Move it controller", "Completed!");
+  }
+  else{
+    ROS_INFO_NAMED("Move it controller", "Failed to plan!");
+  }
 
-  // grip_open();
+  grip_open();
 }
 
 int main(int argc, char** argv)

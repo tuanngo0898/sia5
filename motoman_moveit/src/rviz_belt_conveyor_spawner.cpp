@@ -71,7 +71,7 @@ int main(int argc, char** argv)
   primitive.dimensions.resize(3);
   primitive.dimensions[0] = 1.0;
   primitive.dimensions[1] = 3.0;
-  primitive.dimensions[2] = 0.1;
+  primitive.dimensions[2] = 0.13;
 
   // Define a pose for the box (specified relative to frame_id)
   geometry_msgs::Pose box_pose;
