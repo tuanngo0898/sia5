@@ -24,8 +24,8 @@
 		command="$(find xacro)/xacro --inorder '$(arg model)' x:=$(arg sia5_x) y:=$(arg sia5_y) z:=$(arg sia5_z)
     roll:=$(arg sia5_roll) pitch:=$(arg sia5_pitch) yaw:=$(arg sia5_yaw)" />
 
-  <!-- <param name="red_box_path" type="str" value="$(find motoman_gazebo)/models/urdf/red_box.urdf"/> -->
-  <!-- <param name="cylinder_path" type="str" value="$(find motoman_gazebo)/models/urdf/cylinder.urdf"/> -->
+  <param name="red_box_path" type="str" value="$(find motoman_gazebo)/models/urdf/red_box.urdf"/>
+  <param name="cylinder_path" type="str" value="$(find motoman_gazebo)/models/urdf/cylinder.urdf"/>
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">

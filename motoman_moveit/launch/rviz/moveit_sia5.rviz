@@ -126,6 +126,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
         link_b:
           Alpha: 1
           Show Axes: false
@@ -356,6 +357,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           link_b:
             Alpha: 1
             Show Axes: false
@@ -417,16 +419,16 @@ Visualization Manager:
         TextHeight: 0.07999999821186066
       Planning Request:
         Colliding Link Color: 255; 0; 0
-        Goal State Alpha: 0.10000000149011612
-        Goal State Color: 250; 255; 0
+        Goal State Alpha: 0.20000000298023224
+        Goal State Color: 0; 0; 255
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: arm
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
-        Start State Alpha: 0.5
-        Start State Color: 255; 255; 0
+        Start State Alpha: 1
+        Start State Color: 0; 0; 255
       Planning Scene Topic: move_group/monitored_planning_scene
       Robot Description: robot_description
       Scene Geometry:
@@ -508,6 +510,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+            Value: true
           link_b:
             Alpha: 1
             Show Axes: false
@@ -551,7 +554,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-        Robot Alpha: 0.5
+        Robot Alpha: 0.800000011920929
         Show Robot Collision: false
         Show Robot Visual: false
       Value: true
@@ -564,14 +567,6 @@ Visualization Manager:
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /rviz_moveit_motion_planning_display/robot_interaction_interactive_marker_topic/update
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /rviz_visual_tools
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -608,23 +603,23 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.19629579782485962
-        Y: 0.25700998306274414
-        Z: 0.3232401907444
+        X: 0.2695339322090149
+        Y: 0.2667215168476105
+        Z: 0.3427332937717438
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.169797882437706
+      Pitch: 0.38479769229888916
       Target Frame: world
       Value: Orbit (rviz)
-      Yaw: 0.7384743094444275
+      Yaw: 5.581657886505127
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 836
+  Height: 1043
   Hide Left Dock: false
   Hide Right Dock: true
   MotionPlanning:
@@ -640,6 +635,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1389
-  X: 546
-  Y: 688
+  Width: 1853
+  X: 67
+  Y: 0

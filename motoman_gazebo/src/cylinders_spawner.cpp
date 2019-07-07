@@ -80,7 +80,7 @@
       if (!(get_red_path)){
           return 0;}
           else{ROS_INFO_STREAM(cylinder_path << " has been extracted");
-}
+        }
 
       std::ifstream cylinder_inXml(cylinder_path.c_str());
       std::stringstream cylinder_strStream;
@@ -118,8 +118,7 @@
           std::string model_name;
 
         //   spawn_model_req.initial_pose.position.x = 0.6 + ((float)rand()/(float)(RAND_MAX)-0.5) * 0.4;  // random between -0.4 to 0.4
-          ROS_INFO_STREAM("x position of new cylinder: "
-          << spawn_model_req.initial_pose.position.x);
+          ROS_INFO_STREAM("x position of new cylinder: " << spawn_model_req.initial_pose.position.x);
 
           model_name = "cylinder_" + index;  // initialize model_name
           spawn_model_req.model_name = model_name;
