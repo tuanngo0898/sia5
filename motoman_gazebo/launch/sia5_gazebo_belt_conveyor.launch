@@ -67,4 +67,6 @@
   
   <include file="$(find motoman_moveit)/launch/sia5_controller_belt_conveyor.launch"/>
   <!-- <include file="$(find moveit_controller)/launch/moveit_controller.launch"/> -->
+
+  <node name="dhand_controller" pkg="dhand_control" type="dhand_gazebo_controller.py" output="screen"/>
 </launch>
