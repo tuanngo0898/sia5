@@ -23,13 +23,38 @@
       </inertial>
     </link>
 
-	<joint name="dhand_palm_joint" type="fixed">
+	<joint name="dhand_palm_joint" type="revolute">
+    <limit velocity="0" effort="0" lower="0" upper="0" />
 	  <origin xyz="0.255 0 0"/>
 	  <parent link="dhand_base_link"/>
 	  <child link="dhand_palm_link"/>
 	</joint>
 
-	<link name="dhand_palm_link"/>
+  <link name="dhand_palm_link">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.005 0.005 0.005"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.005 0.005 0.005"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1"/>
+      <inertia
+        ixx="0.0" ixy="0.0" ixz="0.0"
+        iyy="0.0" iyz="0.0"
+        izz="0.0"/>
+    </inertial>
+  </link>
+
   </xacro:macro>
   
 </robot>

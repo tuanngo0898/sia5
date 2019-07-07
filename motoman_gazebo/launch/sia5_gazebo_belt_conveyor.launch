@@ -1,7 +1,7 @@
 <launch>
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
-  <arg name="model" default="$(find motoman_description)/robots/sia5/sia5_with_dhand_and_kinect.urdf.xacro"/>
+  <arg name="model" default="$(find motoman_description)/robots/sia5/sia5_with_dhand.urdf.xacro"/>
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
@@ -14,10 +14,18 @@
 
   <arg name="sia5_roll" default="0"/>
   <arg name="sia5_pitch" default="0"/>
-  <arg name="sia5_yaw" default="0"/>
+  <arg name="sia5_yaw" default="0"/>  
+
+  <!-- ros_control dhand launch file -->
+  <rosparam file="$(find dhand_control)/config/dhand_joint_position_control.yaml" command="load"/>
+
+    <!-- Load the URDF into the ROS Parameter Server -->
+  <param name="robot_description"
+		command="$(find xacro)/xacro --inorder '$(arg model)' x:=$(arg sia5_x) y:=$(arg sia5_y) z:=$(arg sia5_z)
+    roll:=$(arg sia5_roll) pitch:=$(arg sia5_pitch) yaw:=$(arg sia5_yaw)" />
 
   <!-- <param name="red_box_path" type="str" value="$(find motoman_gazebo)/models/urdf/red_box.urdf"/> -->
-  <param name="cylinder_path" type="str" value="$(find motoman_gazebo)/models/urdf/cylinder.urdf"/>
+  <!-- <param name="cylinder_path" type="str" value="$(find motoman_gazebo)/models/urdf/cylinder.urdf"/> -->
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -29,11 +37,6 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <!-- Load the URDF into the ROS Parameter Server -->
-  <param name="robot_description"
-		command="$(find xacro)/xacro --inorder '$(arg model)' x:=$(arg sia5_x) y:=$(arg sia5_y) z:=$(arg sia5_z)
-    roll:=$(arg sia5_roll) pitch:=$(arg sia5_pitch) yaw:=$(arg sia5_yaw)" />
-  
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
   		args="-urdf -model sia5 -param robot_description"/>
@@ -41,8 +44,6 @@
   <!-- ros_control motoman launch file -->
   <include file="$(find motoman_control)/launch/sia5/sia5_sim_control.launch"/>
   
-  <!-- ros_control dhand launch file -->
-  <rosparam file="$(find dhand_control)/config/dhand_joint_position_control.yaml" command="load"/>
   <!-- load the controllers -->
   <node name="controller_spawner" pkg="controller_manager"
 		type="spawner" output="screen"
