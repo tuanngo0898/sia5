@@ -82,6 +82,17 @@ int main(int argc, char** argv)
 
   collision_object.primitives.push_back(primitive);
   collision_object.primitive_poses.push_back(box_pose);
+
+  primitive.dimensions[0] = 0.4;
+  primitive.dimensions[1] = 0.4;
+  primitive.dimensions[2] = 0.3;
+  box_pose.position.x = -0.5;
+  box_pose.position.y = 0.5;
+  box_pose.position.z = 0.05;
+
+  collision_object.primitives.push_back(primitive);
+  collision_object.primitive_poses.push_back(box_pose);
+
   collision_object.operation = collision_object.ADD;
 
   std::vector<moveit_msgs::CollisionObject> collision_objects;

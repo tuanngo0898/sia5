@@ -19,9 +19,9 @@
   
   <!-- Joint -->
   <joint name="dhand_adapter_joint" type="fixed">
-	<origin xyz="0 0 0" rpy="${M_PI} 0 0"/>
-	<parent link="tool0"/>
-	<child link="dhand_adapter_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="tool0"/>
+    <child link="dhand_adapter_link"/>
   </joint>
   
 </robot>

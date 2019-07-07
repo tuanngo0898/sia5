@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="sia5" xmlns:xacro="http://ros.org/wiki/xacro">
+  <robot name="sia5" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- File Include -->
   <xacro:include filename="$(find motoman_description)/urdf/common.xacro" />
   <xacro:include filename="$(find motoman_description)/urdf/materials.xacro"/>
@@ -206,6 +206,7 @@
       <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
     </plugin>
   </gazebo>
+  
   <xacro:gazebo_link_v1 name="base_link"/>
   <xacro:gazebo_link_v1 name="link_s"/>
   <xacro:gazebo_link_v1 name="link_l"/>

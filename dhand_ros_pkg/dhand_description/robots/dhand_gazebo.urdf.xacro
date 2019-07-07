@@ -5,9 +5,9 @@
   
   <link name="world"/>
   <joint name="dhand_adapter_joint" type="fixed">
-	<origin xyz="0 0 0.003" rpy="0 ${-M_PI/2} 0"/>
-	<parent link="world"/>
-	<child link="dhand_adapter_link"/>
+    <origin xyz="0 0 0.003" rpy="0 ${-M_PI/2} 0"/>
+    <parent link="world"/>
+    <child link="dhand_adapter_link"/>
   </joint>
 
   <!-- ====== Gazebo Elements ====== -->

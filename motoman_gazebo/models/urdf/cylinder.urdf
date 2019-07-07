@@ -4,13 +4,13 @@
 <link name="base_link">
   <visual>
   	<geometry>
-      <cylinder length="0.1" radius="0.03"/>
+      <cylinder length="0.15" radius="0.025"/>
     </geometry>
   </visual>
 
   <collision>
     <geometry>
-      <cylinder length="0.1" radius="0.03"/>
+      <cylinder length="0.15" radius="0.025"/>
     </geometry>
   </collision>
 

@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include "std_msgs/Float64.h"
 
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
@@ -20,62 +21,173 @@ moveit_msgs::DisplayTrajectory display_trajectory;
 namespace rvt = rviz_visual_tools;
 moveit_visual_tools::MoveItVisualTools *visual_tools;
 moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-std::vector<moveit_msgs::CollisionObject> collision_objects;
+
+ros::Publisher gripper_pub_top_left;
+ros::Publisher gripper_pub_top_right;
+ros::Publisher gripper_pub_top_middle;
+
+void grip_close(void){
+  std_msgs::Float64 grip;
+  grip.data = 0.45;
+  gripper_pub_top_left.publish(grip);
+  gripper_pub_top_right.publish(grip);
+  gripper_pub_top_middle.publish(grip);
+}
+
+void grip_open(void){
+  std_msgs::Float64 grip;
+  grip.data = 0;
+  gripper_pub_top_left.publish(grip);
+  gripper_pub_top_right.publish(grip);
+  gripper_pub_top_middle.publish(grip);
+}
 
 void palm_pose_callback(const geometry_msgs::Pose& target_pose)
 {
 
   ROS_INFO("palm_pose_callback");
-  
+  bool success;
+  geometry_msgs::Pose dst_pose;
   visual_tools->deleteAllMarkers();
+  visual_tools->trigger();
 
-  collision_objects[1].id = "object";
-  collision_objects[1].header.frame_id = "world";
+  grip_open();
 
-  /* Define the primitive and its dimensions. */
-  collision_objects[1].primitives.resize(1);
-  collision_objects[1].primitives[0].type = collision_objects[1].primitives[0].BOX;
-  collision_objects[1].primitives[0].dimensions.resize(3);
-  collision_objects[1].primitives[0].dimensions[0] = 0.4;
-  collision_objects[1].primitives[0].dimensions[1] = 0.2;
-  collision_objects[1].primitives[0].dimensions[2] = 0.4;
+  moveit_msgs::CollisionObject collision_object;
+  collision_object.header.frame_id = move_group->getPlanningFrame();
 
-  /* Define the pose of the table. */
-  collision_objects[1].primitive_poses.resize(1);
-  collision_objects[1].primitive_poses[0].position.x = 0;
-  collision_objects[1].primitive_poses[0].position.y = 0.5;
-  collision_objects[1].primitive_poses[0].position.z = 0.2;
+  // The id of the object is used to identify it.
+  collision_object.id = "object";
 
+  // Define a box to add to the world.
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+  primitive.dimensions.resize(3);
+  primitive.dimensions[0] = 0.055;
+  primitive.dimensions[1] = 0.055;
+  primitive.dimensions[2] = 0.155;
+
+  // Define a pose for the box (specified relative to frame_id)
+  geometry_msgs::Pose box_pose;
+  box_pose.orientation.w = 0;
+  box_pose.position.x = target_pose.position.x;
+  box_pose.position.y = target_pose.position.y;
+  box_pose.position.z = target_pose.position.z;
+
+  collision_object.primitives.push_back(primitive);
+  collision_object.primitive_poses.push_back(box_pose);
+  collision_object.operation = collision_object.ADD;
+
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.push_back(collision_object);
+
+  // Now, let's add the collision object into the world
+  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+  planning_scene_interface.addCollisionObjects(collision_objects);
+  ROS_INFO("Add object into the world in Rviz");
+
+  tf2::Quaternion orientation;
+  
   std::vector<moveit_msgs::Grasp> grasps;
   grasps.resize(1);
 
   grasps[0].grasp_pose.header.frame_id = "world";
-  tf2::Quaternion orientation;
-  orientation.setRPY(-M_PI / 2, -M_PI / 4, -M_PI / 2);
+  orientation.setRPY(-M_PI / 2, 0, -M_PI / 2);
   grasps[0].grasp_pose.pose.orientation = tf2::toMsg(orientation);
-  grasps[0].grasp_pose.pose.position.x = 0.415;
-  grasps[0].grasp_pose.pose.position.y = 0;
-  grasps[0].grasp_pose.pose.position.z = 0.5;
+  grasps[0].grasp_pose.pose.position.x = target_pose.position.x;
+  grasps[0].grasp_pose.pose.position.y = target_pose.position.y+0.3;
+  grasps[0].grasp_pose.pose.position.z = target_pose.position.z;
 
   /* Defined with respect to frame_id */
   grasps[0].pre_grasp_approach.direction.header.frame_id = "world";
   /* Direction is set as positive x axis */
-  grasps[0].pre_grasp_approach.direction.vector.x = 1.0;
+  grasps[0].pre_grasp_approach.direction.vector.y = -0.5;
   grasps[0].pre_grasp_approach.min_distance = 0.095;
   grasps[0].pre_grasp_approach.desired_distance = 0.115;
 
   /* Defined with respect to frame_id */
-  grasps[0].post_grasp_retreat.direction.header.frame_id = "panda_link0";
-  /* Direction is set as positive z axis */
-  grasps[0].post_grasp_retreat.direction.vector.z = 1.0;
-  grasps[0].post_grasp_retreat.min_distance = 0.1;
-  grasps[0].post_grasp_retreat.desired_distance = 0.25;
+  // grasps[0].post_grasp_retreat.direction.header.frame_id = "world";
+  // /* Direction is set as positive z axis */
+  // grasps[0].post_grasp_retreat.direction.vector.z = 1.0;
+  // grasps[0].post_grasp_retreat.min_distance = 0.1;
+  // grasps[0].post_grasp_retreat.desired_distance = 0.25;
 
   move_group->pick("object", grasps);
+  
+  grip_close();
+  
 
-  move_group->setPoseTarget(target_pose);
+  // std::vector<std::string> object_ids;
+  // object_ids.push_back(std::string(collision_object.id));
+  // planning_scene_interface.removeCollisionObjects(object_ids);
+  // ROS_INFO("Remove object from the world in Rviz");
+
+  // std::vector<geometry_msgs::Pose> waypoints;
+  // geometry_msgs::Pose start_pose;
+  // start_pose = move_group->getCurrentPose().pose;
+  // ROS_INFO("Current position : %f %f %f", start_pose.position.x, start_pose.position.y, start_pose.position.z);
+
+  // waypoints.push_back(start_pose);
+  // start_pose.position.z += 0.1;
+  // waypoints.push_back(start_pose);
+  
+  // move_group->setMaxVelocityScalingFactor(0.1);
+
+  // moveit_msgs::RobotTrajectory trajectory;
+  // const double jump_threshold = 0.0;
+  // const double eef_step = 0.01;
+  // double fraction = move_group->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+
+  // visual_tools->deleteAllMarkers();
+  // visual_tools->publishPath(waypoints, rvt::LIME_GREEN, rvt::SMALL);
+  // for (std::size_t i = 0; i < waypoints.size(); ++i)
+  // visual_tools->publishAxisLabeled(waypoints[i], "pt" + std::to_string(i), rvt::SMALL);
+  // visual_tools->trigger();
+
+  // geometry_msgs::Pose pose;
+  // pose = move_group->getCurrentPose().pose;
+  // pose.position.z += 0.1;
+  // move_group->setPoseTarget(pose);
+  // move_group->move();
+
+  // orientation.setRPY(-M_PI / 2, 0, -M_PI / 2);
+  // dst_pose = move_group->getCurrentPose().pose;
+  // move_group->setPoseTarget(dst_pose);
+  // move_group->setPoseTarget(target_pose);
+
+  // ROS_INFO("Start plan");
+  // success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  // ROS_INFO("Planned");
+  // if(success){
+  //   visual_tools->publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+  //   visual_tools->trigger();
+
+  //   ROS_INFO("Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
+
+  //   // move_group->move();
+  //   move_group->execute(my_plan);
+  //   ROS_INFO_NAMED("Move it controller", "Completed!");
+  // }
+  // else{
+  //   ROS_INFO_NAMED("Move it controller", "Failed to plan!");
+  // }
+
+  
+
+  orientation.setRPY(-M_PI / 2, 0, -M_PI / 2);
+  dst_pose.orientation.x = -0.203;
+  dst_pose.orientation.y = -0.672;
+  dst_pose.orientation.z = 0.674;
+  dst_pose.orientation.w = 0.228;
+  dst_pose.position.x = -0.505;
+  dst_pose.position.y = 0.499;
+  dst_pose.position.z = 0.326;
+  
+  move_group->setPoseTarget(dst_pose);
+  //  move_group->setPoseTarget(target_pose);
+
   ROS_INFO("Start plan");
-  bool success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
   ROS_INFO("Planned");
   if(success){
     visual_tools->publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
@@ -91,6 +203,7 @@ void palm_pose_callback(const geometry_msgs::Pose& target_pose)
     ROS_INFO_NAMED("Move it controller", "Failed to plan!");
   }
 
+  grip_open();
 }
 
 int main(int argc, char** argv)
@@ -100,7 +213,13 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(2);
   spinner.start();
 
-  ros::Subscriber sub = node_handle.subscribe("palm_pose", 10, palm_pose_callback);
+  ros::Subscriber sub = node_handle.subscribe("palm_pose", 1, palm_pose_callback);
+
+  gripper_pub_top_left = node_handle.advertise<std_msgs::Float64>("/dhand/joint_finger_top_left_position_controller/command", 1);
+  gripper_pub_top_right = node_handle.advertise<std_msgs::Float64>("/dhand/joint_finger_top_right_position_controller/command", 1);
+  gripper_pub_top_middle = node_handle.advertise<std_msgs::Float64>("/dhand/joint_finger_top_middle_position_controller/command", 1);
+
+  grip_open();
 
   move_group = new moveit::planning_interface::MoveGroupInterface(PLANNING_GROUP);
   visual_tools = new moveit_visual_tools::MoveItVisualTools("world");
@@ -121,23 +240,34 @@ int main(int argc, char** argv)
   std::copy(move_group->getJointModelGroupNames().begin(), move_group->getJointModelGroupNames().end(), std::ostream_iterator<std::string>(std::cout, ", "));
   ROS_INFO_NAMED("Move it controller", "\r\n");
 
+  // std::vector<moveit_msgs::PlaceLocation> place_location;
+  // place_location.resize(1);
 
-  collision_objects.resize(2);
+  // place_location[0].place_pose.header.frame_id = "world";
+  // 
+  // orientation.setRPY(0, 0, M_PI / 2);
+  // place_location[0].place_pose.pose.orientation = tf2::toMsg(orientation);
 
-  collision_objects[0].id = "bin";
-  collision_objects[0].header.frame_id = "world";
+  // /* While placing it is the exact location of the center of the object. */
+  // place_location[0].place_pose.pose.position.x = 0;
+  // place_location[0].place_pose.pose.position.y = 0.5;
+  // place_location[0].place_pose.pose.position.z = 0.5;
 
-  collision_objects[0].primitives.resize(1);
-  collision_objects[0].primitives[0].type = collision_objects[0].primitives[0].BOX;
-  collision_objects[0].primitives[0].dimensions.resize(3);
-  collision_objects[0].primitives[0].dimensions[0] = 0.2;
-  collision_objects[0].primitives[0].dimensions[1] = 0.4;
-  collision_objects[0].primitives[0].dimensions[2] = 0.4;
+  // /* Defined with respect to frame_id */
+  // place_location[0].pre_place_approach.direction.header.frame_id = "world";
+  // /* Direction is set as negative z axis */
+  // place_location[0].pre_place_approach.direction.vector.z = -1.0;
+  // place_location[0].pre_place_approach.min_distance = 0.095;
+  // place_location[0].pre_place_approach.desired_distance = 0.115;
 
-  collision_objects[0].primitive_poses.resize(1);
-  collision_objects[0].primitive_poses[0].position.x = 0.5;
-  collision_objects[0].primitive_poses[0].position.y = 0;
-  collision_objects[0].primitive_poses[0].position.z = 0.2;
+  // /* Defined with respect to frame_id */
+  // place_location[0].post_place_retreat.direction.header.frame_id = "world";
+  // /* Direction is set as negative y axis */
+  // place_location[0].post_place_retreat.direction.vector.y = -1.0;
+  // place_location[0].post_place_retreat.min_distance = 0.1;
+  // place_location[0].post_place_retreat.desired_distance = 0.25;
+
+  // move_group->place("object", place_location);
 
   ros::waitForShutdown();
   return 0;

@@ -91,10 +91,10 @@
       cylinder_xmlStr = cylinder_strStream.str();
      // ROS_INFO_STREAM("urdf: \n" <<red_xmlStr);
       // prepare the pawn model service message
-      spawn_model_req.initial_pose.position.x = 0.5;
+      spawn_model_req.initial_pose.position.x = 0.3;
     //   spawn_model_req.initial_pose.position.y = -1.3;
       spawn_model_req.initial_pose.position.y = -0.3;
-      spawn_model_req.initial_pose.position.z = 0.201;
+      spawn_model_req.initial_pose.position.z = 0.2;
       spawn_model_req.initial_pose.orientation.x=0.0;
       spawn_model_req.initial_pose.orientation.y=0.0;
       spawn_model_req.initial_pose.orientation.z=0.0;
@@ -106,7 +106,7 @@
       apply_wrench_req.wrench.force.x = 0.0;
     //   apply_wrench_req.wrench.force.y = 50.0;
       apply_wrench_req.wrench.force.y = 0.0;
-      apply_wrench_req.wrench.force.z = 0.0;
+      apply_wrench_req.wrench.force.z = 0.5;
       apply_wrench_req.start_time = time_temp;
       apply_wrench_req.duration = duration_temp;
       apply_wrench_req.reference_frame = "world";
@@ -168,7 +168,7 @@
           ROS_INFO_STREAM("");
 
           ros::spinOnce();
-          ros::Duration(5.0).sleep();  // frequency control, spawn one cylinder in each loop
+          ros::Duration(10.0).sleep();  // frequency control, spawn one cylinder in each loop
           // delay time decides density of the cylinders
 
 

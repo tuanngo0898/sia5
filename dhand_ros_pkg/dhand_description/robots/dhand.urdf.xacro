@@ -9,28 +9,28 @@
   
   <!-- =============== Inertial Info =============== -->
   <xacro:property name="finger_base_mass">
-	<mass value="0.04234931"/>
+	  <mass value="0.04234931"/>
   </xacro:property>
   <xacro:property name="finger_middle_mass">
-	<mass value="0.02332939"/>
+	  <mass value="0.02332939"/>
   </xacro:property>
   <xacro:property name="finger_top_mass">
-	<mass value="0.01452790"/>
+	  <mass value="0.01452790"/>
   </xacro:property>
   <xacro:property name="finger_base_inertia">
-	<inertia ixx="1e-3" ixy="0.00000000" ixz="-0.00001443"
-			 iyy="1e-3" iyz="0.00000000"
-			 izz="1e-3" />
-  </xacro:property>
-  <xacro:property name="finger_middle_inertia">
-	<inertia ixx="1e-3" ixy="0.00000220" ixz="0.00000000"
-			 iyy="1e-3" iyz="0.00000004"
-			 izz="1e-3" />
-  </xacro:property>
-  <xacro:property name="finger_top_inertia">
-	<inertia ixx="1e-3" ixy="0.00000139" ixz="0.00000000"
-			 iyy="1e-3" iyz="0.00000000"
-			 izz="1e-3" />
+    <inertia ixx="1e-3" ixy="0.00000000" ixz="-0.00001443"
+        iyy="1e-3" iyz="0.00000000"
+        izz="1e-3" />
+    </xacro:property>
+    <xacro:property name="finger_middle_inertia">
+    <inertia ixx="1e-3" ixy="0.00000220" ixz="0.00000000"
+        iyy="1e-3" iyz="0.00000004"
+        izz="1e-3" />
+    </xacro:property>
+    <xacro:property name="finger_top_inertia">
+    <inertia ixx="1e-3" ixy="0.00000139" ixz="0.00000000"
+        iyy="1e-3" iyz="0.00000000"
+        izz="1e-3" />
   </xacro:property>
   
   <!-- =============== Link & Joint =============== -->
@@ -132,4 +132,32 @@
   <xacro:dhand_finger_trans_v0 prefix="top" side="right"/>
   <xacro:dhand_finger_trans_v0 prefix="top" side="left"/>
   
+  <!-- ====== Gazebo Elements ====== -->
+  <gazebo>
+    <plugin name="gazebo_grasp_fix" filename="libgazebo_grasp_fix.so">
+          <arm>
+            <arm_name>dhand_grasp</arm_name>
+            <palm_link>link_t</palm_link>
+
+            <gripper_link>dhand_finger_base_right_link</gripper_link>
+            <gripper_link>dhand_finger_base_left_link</gripper_link>
+
+            <gripper_link>dhand_finger_middle_middle_link</gripper_link>
+            <gripper_link>dhand_finger_middle_right_link</gripper_link>
+            <gripper_link>dhand_finger_middle_left_link</gripper_link>
+
+            <gripper_link>dhand_finger_top_middle_link</gripper_link>
+            <gripper_link>dhand_finger_top_right_link</gripper_link>
+            <gripper_link>dhand_finger_top_left_link</gripper_link>
+          </arm>
+        <forces_angle_tolerance>100</forces_angle_tolerance>
+        <update_rate>4</update_rate>
+        <grip_count_threshold>4</grip_count_threshold>
+        <max_grip_count>8</max_grip_count>
+        <release_tolerance>0.005</release_tolerance>
+        <disable_collisions_on_attach>false</disable_collisions_on_attach>
+        <contact_topic>__default_topic__</contact_topic>
+      </plugin>
+  </gazebo>
+
 </robot>
