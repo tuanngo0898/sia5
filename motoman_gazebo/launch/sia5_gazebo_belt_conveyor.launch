@@ -63,10 +63,10 @@
   <node name="bin" pkg="gazebo_ros" type="spawn_model" args="-file $(find motoman_gazebo)/models/urdf/bin.urdf -urdf -model bin -y 0.5 -x -0.5 -z 0.05" />
   <!-- the red blocks spawner node -->
   <!-- <node name="blocks_spawner" pkg="motoman_gazebo" type="blocks_spawner" output="screen" /> -->
-  <node name="cylinders_spawner" pkg="motoman_gazebo" type="cylinders_spawner" output="screen" />
+  <!-- <node name="cylinders_spawner" pkg="motoman_gazebo" type="cylinders_spawner" output="screen" /> -->
   
   <include file="$(find motoman_moveit)/launch/sia5_controller_belt_conveyor.launch"/>
-  <!-- <include file="$(find moveit_controller)/launch/moveit_controller.launch"/> -->
+  <include file="$(find moveit_controller)/launch/moveit_controller.launch"/>
 
   <node name="dhand_controller" pkg="dhand_control" type="dhand_gazebo_controller.py" output="screen"/>
 </launch>

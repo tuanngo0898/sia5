@@ -37,5 +37,5 @@
   <node pkg="motoman_moveit" type="rviz_belt_conveyor_spawner" name="rviz_belt_conveyor_spawner" output="screen" respawn="false" respawn_delay="0" 
   launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
 
-  <node name="moveit_controller" pkg="moveit_controller" type="moveit_controller" respawn="false" output="screen"/>
+  <!-- <node name="moveit_controller" pkg="moveit_controller" type="moveit_controller" respawn="false" output="screen"/> -->
 </launch>

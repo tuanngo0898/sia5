@@ -18,7 +18,7 @@ def dhand_cmd_cb(cmd_msg):
     if cmd_id == 0:    
         angle_msg.data = 0
     else:
-        angle_msg.data = 0.3
+        angle_msg.data = 0.4
 
     finger_top_middle_pub.publish(angle_msg)
     finger_top_left_pub.publish(angle_msg)

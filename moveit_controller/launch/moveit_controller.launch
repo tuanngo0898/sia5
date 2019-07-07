@@ -11,6 +11,8 @@
     <arg name="rviz_config" value="$(find motoman_moveit)/launch/rviz/moveit_sia5.rviz"/>
   </include> -->
 
+  <param name="cylinder_path" type="str" value="$(find motoman_gazebo)/models/urdf/cylinder.urdf"/>
+  
   <node name="moveit_controller" pkg="moveit_controller" type="moveit_controller" respawn="false" output="screen">
   </node>
 
